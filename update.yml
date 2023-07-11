@@ -1,0 +1,30 @@
+---   
+- name: Update the RHEL Linux Server "Yum update"
+  hosts: all
+  gather_facts: true
+  become: true
+  vars:
+    reboot_connect_timeout: 5
+    reboot_post_reboot_delay: 15
+    reboot_timeout: 600
+
+  tasks:
+  - name: Update all installed packages using YUM module
+    yum:
+      name: '*'
+      state: latest
+      update_cache: yes
+      update_only: yes
+    register: yum_update_status
+    when: ansible_os_family == "RedHat"
+
+#  - name: Remove packates not needed anymore
+#    yum:
+#      autoremove: yes
+      
+  - name: Reboot host
+    reboot:
+        connect_timeout: "{{ reboot_connect_timeout }}"
+        post_reboot_delay: "{{ reboot_post_reboot_delay }}"
+        reboot_timeout: "{{ reboot_timeout }}"
+    when: yum_update_status.changed
